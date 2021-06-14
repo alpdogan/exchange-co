@@ -36,7 +36,6 @@ import Loader from 'components/Loader'
 import useI18n from 'hooks/useI18n'
 import PageHeader from 'components/PageHeader'
 import ConnectWalletButton from 'components/ConnectWalletButton'
-import V2ExchangeRedirectModal from 'components/V2ExchangeRedirectModal'
 import AppBody from '../AppBody'
 
 const StyledLink = styled(Link)`
@@ -51,10 +50,7 @@ const Swap = () => {
   const [disableSwap, setDisableSwap] = useState(false)
   const [hasPoppedModal, setHasPoppedModal] = useState(false)
   const [interruptRedirectCountdown, setInterruptRedirectCountdown] = useState(false)
-  const [onPresentV2ExchangeRedirectModal] = useModal(
-    <V2ExchangeRedirectModal handleCloseModal={() => setInterruptRedirectCountdown(true)} />
-  )
-  const onPresentV2ExchangeRedirectModalRef = useRef(onPresentV2ExchangeRedirectModal)
+
   // token warning stuff
   const [loadedInputCurrency, loadedOutputCurrency] = [
     useCurrency(loadedUrlParams?.inputCurrencyId),
@@ -134,42 +130,17 @@ const Swap = () => {
       // Prevent infinite re-render of modal with this condition
       if (!hasPoppedModal) {
         setHasPoppedModal(true)
-        onPresentV2ExchangeRedirectModalRef.current()
       }
 
       // Controls the swap buttons being disabled & renders a message
       setDisableSwap(true)
-
-      const tick = () => {
-        setModalCountdownSecondsRemaining((prevSeconds) => prevSeconds - 1)
-      }
-      const timerInterval = setInterval(() => tick(), 1000)
-
-      if (interruptRedirectCountdown) {
-        // Reset timer if countdown is interrupted
-        clearInterval(timerInterval)
-        setModalCountdownSecondsRemaining(5)
-      }
-
-      if (modalCountdownSecondsRemaining <= 0) {
-        window.location.href = 'https://exchange.pancakeswap.finance/#/swap'
-      }
-
-      return () => {
-        clearInterval(timerInterval)
-      }
     }
 
     // Unset disableSwap state if the swap inputs & outputs dont match disabledSwaps
     setDisableSwap(false)
+    handleConfirmTokenWarning();
     return undefined
-  }, [
-    currencies,
-    hasPoppedModal,
-    modalCountdownSecondsRemaining,
-    onPresentV2ExchangeRedirectModalRef,
-    interruptRedirectCountdown,
-  ])
+  }, [currencies, hasPoppedModal, handleConfirmTokenWarning, interruptRedirectCountdown, modalCountdownSecondsRemaining])
 
   const parsedAmounts = showWrap
     ? {
@@ -307,34 +278,14 @@ const Swap = () => {
     setSwapState((prevState) => ({ ...prevState, tradeToConfirm: trade }))
   }, [trade])
 
-  // This will check to see if the user has selected Syrup or SafeMoon to either buy or sell.
-  // If so, they will be alerted with a warning message.
-  const checkForWarning = useCallback(
-    (selected: string, purchaseType: string) => {
-      if (['SYRUP', 'SAFEMOON'].includes(selected)) {
-        setTransactionWarning({
-          selectedToken: selected,
-          purchaseType,
-        })
-      }
-    },
-    [setTransactionWarning]
-  )
-
   const handleInputSelect = useCallback(
     (inputCurrency) => {
       setHasPoppedModal(false)
       setInterruptRedirectCountdown(false)
       setApprovalSubmitted(false) // reset 2 step UI for approvals
       onCurrencySelection(Field.INPUT, inputCurrency)
-      if (inputCurrency.symbol === 'SYRUP') {
-        checkForWarning(inputCurrency.symbol, 'Selling')
-      }
-      if (inputCurrency.symbol === 'SAFEMOON') {
-        checkForWarning(inputCurrency.symbol, 'Selling')
-      }
     },
-    [onCurrencySelection, setApprovalSubmitted, checkForWarning]
+    [onCurrencySelection, setApprovalSubmitted]
   )
 
   const handleMaxInput = useCallback(() => {
@@ -348,29 +299,12 @@ const Swap = () => {
       setHasPoppedModal(false)
       setInterruptRedirectCountdown(false)
       onCurrencySelection(Field.OUTPUT, outputCurrency)
-      if (outputCurrency.symbol === 'SYRUP') {
-        checkForWarning(outputCurrency.symbol, 'Buying')
-      }
-      if (outputCurrency.symbol === 'SAFEMOON') {
-        checkForWarning(outputCurrency.symbol, 'Buying')
-      }
     },
-    [onCurrencySelection, checkForWarning]
+    [onCurrencySelection]
   )
 
   return (
     <Container>
-      <TokenWarningModal
-        isOpen={urlLoadedTokens.length > 0 && !dismissTokenWarning}
-        tokens={urlLoadedTokens}
-        onConfirm={handleConfirmTokenWarning}
-      />
-      <SyrupWarningModal
-        isOpen={transactionWarning.selectedToken === 'SYRUP'}
-        transactionType={transactionWarning.purchaseType}
-        onConfirm={handleConfirmWarning}
-      />
-      <SafeMoonWarningModal isOpen={transactionWarning.selectedToken === 'SAFEMOON'} onConfirm={handleConfirmWarning} />
       <CardNav />
       <AppBody>
         <Wrapper id="swap-page">
@@ -483,17 +417,6 @@ const Swap = () => {
               )}
             </AutoColumn>
             <BottomGrouping>
-              {disableSwap && (
-                <Flex alignItems="center" justifyContent="center" mb="1rem">
-                  <Text color="failure">
-                    Please use{' '}
-                    <StyledLink external href="https://exchange.pancakeswap.finance">
-                      PancakeSwap V2
-                    </StyledLink>{' '}
-                    to make this trade
-                  </Text>
-                </Flex>
-              )}
               {!account ? (
                 <ConnectWalletButton width="100%" />
               ) : showWrap ? (
