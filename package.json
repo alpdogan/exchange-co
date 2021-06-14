@@ -3,6 +3,9 @@
   "description": "Pancakeswap Interface",
   "homepage": ".",
   "private": true,
+  "engines": {
+    "node": "10.24.1"
+  },
   "dependencies": {
     "@binance-chain/bsc-connector": "^1.0.0",
     "@crowdin/crowdin-api-client": "^1.8.16",
