@@ -37,6 +37,7 @@
     "cids": "^1.0.0",
     "copy-to-clipboard": "^3.2.0",
     "ethers": "^5.0.7",
+    "express": "^4.17.1",
     "i18next": "^15.0.9",
     "i18next-browser-languagedetector": "^3.0.1",
     "i18next-xhr-backend": "^2.0.1",
@@ -44,9 +45,12 @@
     "jazzicon": "^1.5.0",
     "js-cookie": "^2.2.1",
     "lodash.flatmap": "^4.5.0",
+    "morgan": "^1.10.0",
     "multicodec": "^2.0.0",
     "multihashes": "^3.0.1",
+    "path": "^0.12.7",
     "polished": "^3.3.2",
+    "qs": "^6.9.4",
     "react": "^17.0.1",
     "react-device-detect": "^1.6.2",
     "react-dom": "^17.0.1",
@@ -62,8 +66,7 @@
     "rebass": "^4.0.7",
     "redux-localstorage-simple": "^2.3.1",
     "styled-components": "^5.2.1",
-    "typescript": "^4.1.3",
-    "qs": "^6.9.4"
+    "typescript": "^4.1.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^12.0.0",
@@ -83,7 +86,8 @@
     "@walletconnect/web3-provider": "1.1.1-alpha.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node index.js",
+    "start:development": "react-scripts start",
     "heroku-postbuild": "yarn && yarn build",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
